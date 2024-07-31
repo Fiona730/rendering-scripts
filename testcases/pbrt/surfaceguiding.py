@@ -1,4 +1,4 @@
-test_case_description = {
+testCase_description = {
     "title" : "Guiding tests in PBRT",
     "short" : "Comparing path tracing with and without path guiding using PBRT's guided integrator.",
     "long" : "This test compares ."
@@ -12,7 +12,7 @@ common_parameters = {
     "enableguiding" : ["bool", False],
 }
 
-test_cases = {
+testCases = {
     "no_guiding" : {
         "parameters" : {
 

@@ -1,4 +1,4 @@
-test_case_description = {
+testCase_description = {
     "title" : "Guiding tests in Blender/Cycles",
     "short" : "Comparing path tracing with and without path guiding using Blender's Cycles renderer.",
     "long" : "This test compares ."
@@ -43,7 +43,7 @@ common_parameters = {
     "cycles.pixel_filter_type" : 'BOX',
 }
 
-test_cases = {
+testCases = {
     "no-guiding-no-lbvh" : {
         "parameters" : {
             "cycles.use_guiding" : False,

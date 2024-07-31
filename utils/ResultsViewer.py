@@ -13,7 +13,7 @@ from simpleimageio import lin_to_srgb
 import utils.errormetrics
 import cv2
 
-def make_safe_dir(folderName):
+def makeSafeDir(folderName):
     if not os.path.exists(folderName):
         os.makedirs(folderName)
 
@@ -22,27 +22,30 @@ class ResultsViewer:
     def __init__(self, utils_dir):
         self.utils_dir = utils_dir
 
-    def generateHTMLS(self, viewer_output_dir, results_dir, scenes_dir, scenes, testCaseDescription, testCases, showReference=False, perScene = True, layers=[], errors=[]):
-        make_safe_dir(viewer_output_dir)
-        make_safe_dir(viewer_output_dir + "/utils")
-        shutil.copy(self.utils_dir + "/Chart.js", viewer_output_dir + "/utils/Chart.js")
-        shutil.copy(self.utils_dir + "/ChartBox.js", viewer_output_dir + "/utils/ChartBox.js")
-        shutil.copy(self.utils_dir + "/CopyrightBox.js", viewer_output_dir + "/utils/CopyrightBox.js")
-        shutil.copy(self.utils_dir + "/ImageBox.js", viewer_output_dir + "/utils/ImageBox.js")
-        shutil.copy(self.utils_dir + "/report.css", viewer_output_dir + "/utils/report.css")
-        shutil.copy(self.utils_dir + "/TableBox.js", viewer_output_dir + "/utils/TableBox.js")
+    def generateHTMLS(self, viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, showReference=False, perScene = True, layers=[], errors=[]):
+        makeSafeDir(viewerOutputDir)
+        makeSafeDir(viewerOutputDir + "/utils")
+        shutil.copy(self.utils_dir + "/Chart.js", viewerOutputDir + "/utils/Chart.js")
+        shutil.copy(self.utils_dir + "/ChartBox.js", viewerOutputDir + "/utils/ChartBox.js")
+        shutil.copy(self.utils_dir + "/CopyrightBox.js", viewerOutputDir + "/utils/CopyrightBox.js")
+        shutil.copy(self.utils_dir + "/ImageBox.js", viewerOutputDir + "/utils/ImageBox.js")
+        shutil.copy(self.utils_dir + "/report.css", viewerOutputDir + "/utils/report.css")
+        shutil.copy(self.utils_dir + "/TableBox.js", viewerOutputDir + "/utils/TableBox.js")
         allSceneResultsDict = []
 
         numLayers = len(layers)
         numErrors = len(errors)
 
-        for scene, scene_variants, resolution in scenes:
+        for scene, sceneInfo in scenes.items():
+            sceneVariants = sceneInfo[0]
+            resolution = sceneInfo[1]
+            budget = sceneInfo[2]
 
-            for variant in scene_variants:
-                scene_variant_dir = viewer_output_dir + "/"+ scene
+            for variant in sceneVariants:
+                sceneVariant_dir = viewerOutputDir + "/"+ scene
                 if variant != "":
-                    scene_variant_dir += variant
-                make_safe_dir(scene_variant_dir)
+                    sceneVariant_dir += variant
+                makeSafeDir(sceneVariant_dir)
 
                 sceneResultsDict = {}
                 sceneResultsDict["title"] = scene + variant
@@ -76,10 +79,10 @@ class ResultsViewer:
 
                 if showReference:
                     reference_dict = {}
-                    reference_image_exr =  scenes_dir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
+                    reference_image_exr =  scenesDir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
                     print(reference_image_exr)
                     img = sio.read(reference_image_exr)
-                    reference_image_png =  scene_variant_dir + "/" + scene + variant + "_ref" + ".png"
+                    reference_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + ".png"
                     sio.image.write(reference_image_png, img)
                     reference_dict = {}
                     reference_dict["title"] = "Reference"
@@ -101,8 +104,8 @@ class ResultsViewer:
                             img = np.zeros(img.shape)
                             if limg.__contains__(layers[i]):
                                 img = limg[layers[i]]
-                            test_case_layer_image_png =  scene_variant_dir + "/" + scene + variant + "_ref" + "-"+ layers[i] + ".png"
-                            sio.image.write(test_case_layer_image_png, img)
+                            testCase_layer_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + "-"+ layers[i] + ".png"
+                            sio.image.write(testCase_layer_image_png, img)
                             layer_dict = {}
                             layer_dict["title"] = "Reference"
                             layer_dict["version"] = "-"
@@ -115,8 +118,8 @@ class ResultsViewer:
                     if numErrors > 0:
                         for i in range(numErrors):
                             img = np.zeros(img.shape)
-                            test_case_error_image_png =  scene_variant_dir + "/" + scene + variant + "_ref" + "-"+ errors[i] + ".png"
-                            sio.image.write(test_case_error_image_png, img)
+                            testCase_error_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + "-"+ errors[i] + ".png"
+                            sio.image.write(testCase_error_image_png, img)
                             error_dict = {}
                             error_dict["title"] = "Reference"
                             error_dict["version"] = "-"
@@ -131,11 +134,11 @@ class ResultsViewer:
                     
                     if not testCase.skipViewer:
                         result_dict = {}
-                        test_case_result_image_exr =  results_dir + "/" + scene + variant + "/" + scene + variant + "-" + testCase.name + ".exr"
-                        print(test_case_result_image_exr)
-                        tcImg = sio.read(test_case_result_image_exr)
-                        test_case_result_image_png =  scene_variant_dir + "/" + scene + variant + "-" + testCase.name + ".png"
-                        sio.image.write(test_case_result_image_png, tcImg)
+                        testCase_result_image_exr =  resultsDir + "/" + scene + variant + "/" + scene + variant + "-" + testCase.name + ".exr"
+                        print(testCase_result_image_exr)
+                        tcImg = sio.read(testCase_result_image_exr)
+                        testCase_result_image_png =  sceneVariant_dir + "/" + scene + variant + "-" + testCase.name + ".png"
+                        sio.image.write(testCase_result_image_png, tcImg)
                         result_dict = {}
                         result_dict["title"] = testCase.name
                         result_dict["version"] = "-"
@@ -151,13 +154,13 @@ class ResultsViewer:
                             sceneResultsDict["elements"].append(result_dict)
 
                         if numLayers > 0:
-                            limg = sio.read_layered_exr(test_case_result_image_exr)
+                            limg = sio.read_layered_exr(testCase_result_image_exr)
                             for i in range(numLayers):
                                 img = np.zeros(tcImg.shape)
                                 if limg.__contains__(layers[i]):
                                     img = limg[layers[i]]
-                                test_case_layer_image_png =  scene_variant_dir + "/" + scene + variant + "-" + testCase.name + "-"+ layers[i] + ".png"
-                                sio.image.write(test_case_layer_image_png, img)
+                                testCase_layer_image_png =  sceneVariant_dir + "/" + scene + variant + "-" + testCase.name + "-"+ layers[i] + ".png"
+                                sio.image.write(testCase_layer_image_png, img)
                                 layer_dict = {}
                                 layer_dict["title"] = testCase.name
                                 layer_dict["version"] = "-"
@@ -168,7 +171,7 @@ class ResultsViewer:
                                 sceneResultsDict["elements"][typeId[layers[i]]]["elements"].append(layer_dict)
 
                         if numErrors > 0:
-                            reference_image_exr =  scenes_dir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
+                            reference_image_exr =  scenesDir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
                             refImg = sio.read(reference_image_exr)
                             for i in range(numErrors):
                                     [errorValue, errorImg] = errormetrics.calculateError(refImg, tcImg, errors[i], percentile=0.01, epsilon=0.001)
@@ -178,8 +181,8 @@ class ResultsViewer:
                                     print("errorValue = " , errorValue , "\t fgError = ", fgError)
                                     errorImg = cv2.applyColorMap(((np.clip(errorImg / (errorValue * 2), 0.0, 1.0))*255).astype(np.uint8), cv2.COLORMAP_AUTUMN).astype(np.float32) / 255.0    
                                     #errorImg = lin_to_srgb(errorImg)
-                                    test_case_error_image_png =  scene_variant_dir + "/" + scene + variant + "-" + testCase.name + "-"+ errors[i] + ".png"
-                                    sio.image.write(test_case_error_image_png, errorImg)
+                                    testCase_error_image_png =  sceneVariant_dir + "/" + scene + variant + "-" + testCase.name + "-"+ errors[i] + ".png"
+                                    sio.image.write(testCase_error_image_png, errorImg)
                                     error_dict = {}
                                     error_dict["title"] = testCase.name
                                     error_dict["version"] = "-"
@@ -197,7 +200,7 @@ class ResultsViewer:
                     htmlStr += self.generateHeader("title", scene + variant)
                     htmlStr += self.generateBody(testCaseDescription, [sceneResultsDict], scene + variant)
                     htmlStr += self.generateFooter()
-                    sceneViewHTML = open(scene_variant_dir +"/"+ "index.html","w")
+                    sceneViewHTML = open(sceneVariant_dir +"/"+ "index.html","w")
                     sceneViewHTML.write(htmlStr)
                     sceneViewHTML.close()
                     #print(htmlStr)
@@ -207,7 +210,7 @@ class ResultsViewer:
             htmlStr += self.generateHeader(perScene=False)
             htmlStr += self.generateBody(testCaseDescription, allSceneResultsDict,perScene=False)
             htmlStr += self.generateFooter()
-            sceneViewHTML = open(viewer_output_dir +"/"+ "index.html","w")
+            sceneViewHTML = open(viewerOutputDir +"/"+ "index.html","w")
             sceneViewHTML.write(htmlStr)
             sceneViewHTML.close()
             #print(htmlStr)

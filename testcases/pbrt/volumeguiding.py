@@ -1,4 +1,4 @@
-test_case_description = {
+testCase_description = {
     "title" : "Guiding tests in PBRT",
     "short" : "Comparing path tracing with and without path guiding using PBRT's guidedvolpath integrator.",
     "long" : "This test compares ."
@@ -13,7 +13,7 @@ common_parameters = {
     "volumeguiding" : ["bool", False],
 }
 
-test_cases = {
+testCases = {
         "volume_surface_guiding" : {
         "parameters" : {
             "surfaceguiding" : ["bool", True],

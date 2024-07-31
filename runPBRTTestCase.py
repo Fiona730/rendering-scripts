@@ -1,33 +1,61 @@
 import renderer.pbrt.PBRTRenderer as PBRTRenderer
 import utils.TestCaseHelper as TestCaseHelper
 import utils.SceneHelper as SceneHelper
-
 import utils.ResultsViewer as ResultsViewer
 
-# path to the PBRT installation (e.g., folder or a soft link to it)
-pbrt_dir = "./pbrt-renderer/"
-# path to store the results
-results_dir = "./pbrt-results/surfaceguiding"
-# path to store the post-processed results and the HTML viewer
-viewer_output_dir = "./pbrt-viewers/surfaceguiding"
+import argparse
 
-# Loading the test case descriptions from a file
-testCases = TestCaseHelper.loadTestCases("examples/pbrt/testcases/surfaceguiding")
-testCaseDescription = TestCaseHelper.loadTestCaseDescription("examples/pbrt/testcases/surfaceguiding")
+RUN_NAME = "initialScriptTest"
+testCase = "vspg"
+DIR_NAME = testCase + '-' + RUN_NAME
+budgetIsSPP = True
 
-# Loading the scenes to run the test cases (e.g., pbrt-scenes can be a folder or a soft link to it)
-[scenes, scenes_dir] = SceneHelper.loadScenes("pbrt-scenes/scenesconfig") 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--scene', '-t', default='', type=str)
+    parser.add_argument('--render', action='store_true')
+    parser.add_argument('--no-render', dest='render', action='store_false')
+    parser.set_defaults(render=True)
+    parser.add_argument('--viewer', action='store_true')
+    parser.add_argument('--no-viewer', dest='viewer', action='store_false')
+    parser.set_defaults(viewer=True)
+    args = parser.parse_args()
 
-# Setup the PBRT renderer
-pbrt = PBRTRenderer.PBRTRenderer(pbrt_dir, results_dir, scenes_dir)
+    # path to the PBRT installation (e.g., folder or a soft link to it)
+    # pbrtDir = "./pbrt-renderer/"
+    pbrtDir = "/home/kehan/Develop/pbrt-v4-Distance-Guiding-guidedrr-vspg/install/"
+    # path to store the results
+    resultsDir = f"./pbrt-results/{DIR_NAME}"
+    # path to store the post-processed results and the HTML viewer
+    viewerOutputDir = f"./pbrt-viewers/{DIR_NAME}"
 
-#for each scene and each scene variant
-for scene, scene_variants, resolution in scenes:
-    for variant in scene_variants:
-        #run each test case defined in the test cases file
-        for testCase in testCases:    
-            pbrt.runTestCase(scene, variant, resolution, testCase, spp = 64, stats = True, usedGuidedGBuffer = False)
+    # Loading the test case descriptions from a file
+    testCases, testCaseDescription = TestCaseHelper.loadTestCases(f"testcases/pbrt/{testCase}")
 
-#after running all test cases for all scenes prepare the results in an interactive HTML viewer 
-viewer = ResultsViewer.ResultsViewer("./utils/webviewer")
-viewer.generateHTMLS(viewer_output_dir, results_dir, scenes_dir, scenes, testCaseDescription, testCases, showReference=False, perScene=False)
+    # Loading the scenes to run the test cases (e.g., pbrt-scenes can be a folder or a soft link to it)
+    [scenes, scenesDir] = SceneHelper.loadScenes("scenes/pbrt/scenesconfig") 
+
+    if args.render:
+        # Setup the PBRT renderer
+        pbrt = PBRTRenderer.PBRTRenderer(pbrtDir, resultsDir, scenesDir)
+
+        if args.scene != "":
+            if not args.scene in scenes.keys():
+                print(f"ERROR scene = \'{args.scene}\' is NOT part of the scenes.")
+            
+            scene = args.scene
+            sceneInfo = scenes[scene]
+            for testCase in testCases:
+                pbrt.runTestCase(scene, sceneInfo, testCase, budgetSPP=budgetIsSPP, stats=True)
+
+        else:
+            #for each scene and each scene variant
+            for scene, sceneInfo in scenes.items():
+                #run each test case defined in the test cases file
+                for testCase in testCases:
+                    pbrt.runTestCase(scene, sceneInfo, testCase, budgetSPP = budgetIsSPP, stats = True)
+
+    if args.viewer and args.scene == "":
+        #after running all test cases for all scenes prepare the results in an interactive HTML viewer 
+        viewer = ResultsViewer.ResultsViewer("./utils/webviewer")
+        viewer.generateHTMLS(viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, showReference=False, perScene=False)

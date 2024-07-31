@@ -1,4 +1,4 @@
-test_case_description = {
+testCase_description = {
     "title" : "Reference renderings using Mitsuba",
     "short" : "Rendering reference images using the guidedprogressivevolpath integrator of Mitsuba.",
     "long" : "This test compares ."
@@ -17,7 +17,7 @@ common_parameters = {
     "useSurfaceGuiding" : False,
 }
 
-test_cases = {
+testCases = {
         "preparecaches" : {
             "parameters" : {
                 "sampleCount": 128,

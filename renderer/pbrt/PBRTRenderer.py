@@ -1,77 +1,91 @@
 import os
 import copy
+import fnmatch
 
 class PBRTRenderer:
-    def __init__(self, pbrt_install_dir, results_dir, scenes_dir):
-        self.pbrt_install_dir = pbrt_install_dir
-        self.results_dir = results_dir
-        self.scenes_dir = scenes_dir
+    def __init__(self, pbrtInstallDir, resultsDir, scenesDir):
+        self.pbrtInstallDir = pbrtInstallDir
+        self.resultsDir = resultsDir
+        self.scenesDir = scenesDir
 
-        os.environ['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH'] + ":" + self.pbrt_install_dir +"lib"
-        os.environ['PATH'] = os.environ['PATH'] + ":" + self.pbrt_install_dir +"bin"
+        os.environ['LD_LIBRARY_PATH'] = os.environ['LD_LIBRARY_PATH'] + ":" + self.pbrtInstallDir +"lib"
+        os.environ['PATH'] = os.environ['PATH'] + ":" + self.pbrtInstallDir +"bin"
 
-        make_safe_dir(self.results_dir)
+        makeSafeDir(self.resultsDir)
 
-    def runTestCase(self, scene, scene_variant, resolution, test_case, spp = 64, stats = False, usedGuidedGBuffer = False):
-        make_safe_dir(self.results_dir + "/" + scene + scene_variant)
+    def runTestCase(self, scene, sceneInfo, testCase, budgetIsSPP = True, stats = False):
+        sceneVariant = sceneInfo[0]
+        resolution = sceneInfo[1]
+        budget = sceneInfo[2]
 
-        outFile = self.results_dir + "/" + scene + scene_variant + "/" + scene + scene_variant + "-" + test_case.name + ".exr"
+        sceneVariantConcat = scene + sceneVariant
+        resultsSceneDir = os.path.join(self.resultsDir, sceneVariantConcat)
+        makeSafeDir(resultsSceneDir)
+        logDir = os.path.join(resultsSceneDir, "log")
+        makeSafeDir(logDir)
 
-        parameters = copy.deepcopy(test_case.parameters)
+        fileName = sceneVariantConcat + "-" + testCase.name
+        outFile = os.path.join(resultsSceneDir, fileName + ".exr")
+        logFile = os.path.join(logDir, fileName + ".log")
+
+        if os.path.exists(outFile):
+            print('WARNING: ', outFile, ' already exists')
+
+        parameters = copy.deepcopy(testCase.parameters)
         for parameter in parameters:
             value = parameters[parameter][1]
             if isinstance(value, str):
                 if "$SCENE$" in value:
-                    parameters[parameter][1] = value.replace("$SCENE$", self.results_dir + "/" + scene + scene_variant + "/" + scene + scene_variant)
+                    parameters[parameter][1] = value.replace("$SCENE$", os.path.join(self.resultsDir, sceneVariantConcat, sceneVariantConcat))
                     #print(value)
                     #print(parameters[parameter][1])
         
         integratorString = extractIntegrator(parameters)
-        filmString = extractFilm(resolution, parameters, scene + scene_variant + "-" + test_case.name + ".exr", usedGuidedGBuffer = usedGuidedGBuffer)
-        tmpTestCaseFileName = self.scenes_dir + scene +"/" + scene + scene_variant + "-"+ test_case.name + ".pbrt"
+        filmString = extractFilm(resolution, parameters, fileName + ".exr")
+        tmpTestCaseFileName = os.path.join(self.scenesDir, scene, fileName + ".pbrt")
         
         tmpSceneFile = open(tmpTestCaseFileName,"w")
         tmpSceneFile.write(filmString)
         tmpSceneFile.write("\n")
         tmpSceneFile.write(integratorString)
         tmpSceneFile.write("\n")
-        tmpSceneFile.write("Include \"" + scene + scene_variant + "_auto.pbrt" + "\"")
+        tmpSceneFile.write("Include \"" + sceneVariantConcat + "_auto.pbrt" + "\"")
         tmpSceneFile.write("\n")
         tmpSceneFile.close()
+
+        budgetType = "spp" if budgetIsSPP else "time"
 
         command = "pbrt"
         command += " " + tmpTestCaseFileName
         if stats:
             command += " --stats "
         #command += " --nthreads " + str(1)
-        command += " --spp " + str(spp)
+        command += f" --{budgetType} {budget}"
         command += " --outfile " + str(outFile)
-        command += " > " + outFile.replace(".exr", ".log")
+        command += " 2>&1 | tee " + str(logFile)
         print(command)
         os.system(command)
+        if not readLogFileNeedRerunVolume(logFile):
+            break
 
         if os.path.isfile(tmpTestCaseFileName):
             os.remove(tmpTestCaseFileName)
 
-    def run(self, sceneFile, outfile, spp = 64):
-        command = "pbrt"
-        command += " " + sceneFile
-        command += " --spp " + str(spp)
-        command += " --outfile " + str(outfile)
-        command += " > " + outfile.replace(".exr", ".log")
-        print(command)
-        os.system(command)
-
-def make_safe_dir(folderName):
+def makeSafeDir(folderName):
     if not os.path.exists(folderName):
         os.makedirs(folderName)
 
-def extractFilm(resolution, parameters, outputFileName, usedGuidedGBuffer = False):
+def readLogFileNeedRerunVolume(logfile):
+    with open(logfile, 'r') as log:
+        list_of_lines = log.readlines()
+    for line in list_of_lines:
+        if fnmatch.fnmatch(line, "*: medium is not defined.\n"):
+            return True
+    return False
+
+def extractFilm(resolution, parameters, outputFileName):
     filmString = ""
-    if not usedGuidedGBuffer:
-        filmString += "Film " +"\"rgb\"" + "\n"
-    else:
-        filmString += "Film " +"\"guidedgbuffer\"" + "\n"
+    filmString += "Film " +"\"rgb\"" + "\n"
     
     filmString += "\"string filename\" " + "\"" + outputFileName +"\""+ "\n"
     filmString += "\"integer xresolution\" ["+ str(resolution[0]) + "]" + "\n"
