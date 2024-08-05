@@ -6,8 +6,12 @@ mitsuba-viewers
 pbrt-viewers
 blender-viewers
 
-mitsuba-scenes
-pbrt-scenes
-blender-scenes
+mitsuba-buffers
+pbrt-buffers
+blender-buffers
+
+# mitsuba-scenes
+# pbrt-scenes
+# blender-scenes
 
 __pycache__

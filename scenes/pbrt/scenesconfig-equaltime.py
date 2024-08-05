@@ -6,7 +6,7 @@ scenes = {
             # "-volume-homo",
             "-volume-hetero",
         ], [1920, 1080], 
-        64, # spp
+        300, # time
     ],
 
     "country-kitchen" : [
@@ -16,14 +16,14 @@ scenes = {
             # "-volume-hetero-maj10",
             # "-volume-hetero-maj20",
         ], [1920, 1080], 
-        64, # spp
+        300, # time
     ],
 
     "landscape" : [
         [
             "",
         ], [1920, 1080], 
-        64, # spp
+        300, # time
     ],
 
     "290skydemo" : [
@@ -34,7 +34,7 @@ scenes = {
             "-deeper",
             # "-even-deeper"
         ], [1920,1080], 
-        64, # spp
+        300, # time
     ],
 
     "earth" : [
@@ -45,42 +45,42 @@ scenes = {
             # "-density3",
             # "-density5",
         ], [1920,1080], 
-        16, # spp
+        120, # time
     ],
 
     "oriental-lantern" : [
         [
             "",
         ], [1920, 1080], 
-        16, # spp
+        120, # time
     ],
 
-    "museum" : [
-        [
-            "-hetero",
-        ], [1920, 1080], 
-        64, # spp
-    ],
+    # "museum" : [
+    #     [
+    #         "-hetero",
+    #     ], [1920, 1080], 
+    #     300, # time
+    # ],
 
-    "cornell-box-lightshaft" : [
-        [
-            "-hetero-scale0.3-g0",
-        ], [1920, 1080], 
-        16, # spp
-    ],
+    # "cornell-box-lightshaft" : [
+    #     [
+    #         "-hetero-scale0.3-g0",
+    #     ], [1920, 1080], 
+    #     120, # time
+    # ],
 
-    "cornell-box-ball" : [
-        [
-            "-hetero",
-        ], [1920, 1080], 
-        64, # spp
-    ],
+    # "cornell-box-ball" : [
+    #     [
+    #         "-hetero",
+    #     ], [1920, 1080], 
+    #     300, # time
+    # ],
 
-    "simple-disney-cloud" : [
-        [
-            # "-cornell-box-backlight",
-            "-simple-surface-pointlight",
-        ], [1920,1080], 
-        16, # spp
-    ],
+    # "simple-disney-cloud" : [
+    #     [
+    #         # "-cornell-box-backlight",
+    #         "-simple-surface-pointlight",
+    #     ], [1920,1080], 
+    #     120, # time
+    # ],
 }

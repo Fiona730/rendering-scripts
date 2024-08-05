@@ -9,14 +9,14 @@ class TestCase:
         if data.__contains__("skipViewer"):
             self.skipViewer = data["skipViewer"]
 
-def loadTestCases(testCases):
-    testCases = []
-    sys.path.append(os.path.dirname(testCases))
-    tcs = importlib.import_module(os.path.basename(testCases))
+def loadTestCases(testCasesFile):
+    testCasesList = []
+    sys.path.append(os.path.dirname(testCasesFile))
+    tcs = importlib.import_module(os.path.basename(testCasesFile))
     
     for testCase in tcs.testCases: 
-        testCases.append(TestCase(testCase, tcs.testCases[testCase], tcs.common_parameters))
-    return testCases, tcs.testCase_description
+        testCasesList.append(TestCase(testCase, tcs.testCases[testCase], tcs.common_parameters))
+    return testCasesList, tcs.testCase_description
 
 def mergeParameters(common_parameters, testCase_parameters):
     parameters = testCase_parameters
