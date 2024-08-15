@@ -10,7 +10,7 @@ import numpy as np
 import simpleimageio as sio
 from simpleimageio import lin_to_srgb
 
-import utils.errormetrics
+import utils.errormetrics as errormetrics
 import cv2
 
 def makeSafeDir(folderName):
@@ -22,7 +22,7 @@ class ResultsViewer:
     def __init__(self, utils_dir):
         self.utils_dir = utils_dir
 
-    def generateHTMLS(self, viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, showReference=False, perScene = True, layers=[], errors=[]):
+    def generateHTMLS(self, viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, budgetIsSPP = True, showReference=False, referenceTag="_ref_depth20", perScene = True, layers=[], errors=[]):
         makeSafeDir(viewerOutputDir)
         makeSafeDir(viewerOutputDir + "/utils")
         shutil.copy(self.utils_dir + "/Chart.js", viewerOutputDir + "/utils/Chart.js")
@@ -35,6 +35,8 @@ class ResultsViewer:
 
         numLayers = len(layers)
         numErrors = len(errors)
+
+        budgetType = "spp" if budgetIsSPP else "time"
 
         for scene, sceneInfo in scenes.items():
             sceneVariants = sceneInfo[0]
@@ -54,7 +56,7 @@ class ResultsViewer:
                 typeId = {}
                 typeCount = 0
                 sceneResultsLayersDict = {}
-                if numLayers > 0:
+                if numLayers > 0 or numErrors > 0:
                     layerDict = {}
                     layerDict["title"] = "color"
                     layerDict["elements"] = []
@@ -79,21 +81,21 @@ class ResultsViewer:
 
                 if showReference:
                     reference_dict = {}
-                    reference_image_exr =  scenesDir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
+                    reference_image_exr = os.path.join(scenesDir, scene, "reference", scene + variant + referenceTag + ".exr")
                     print(reference_image_exr)
                     img = sio.read(reference_image_exr)
-                    reference_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + ".png"
+                    reference_image_png =  sceneVariant_dir + "/" + scene + variant + referenceTag + ".png"
                     sio.image.write(reference_image_png, img)
                     reference_dict = {}
                     reference_dict["title"] = "Reference"
                     reference_dict["version"] = "-"
                     
                     if perScene:
-                        reference_dict["image"] = scene + variant + "_ref" + ".png"
+                        reference_dict["image"] = scene + variant + referenceTag + ".png"
                     else:
-                        reference_dict["image"] = scene + variant + "/" + scene + variant + "_ref" + ".png"
+                        reference_dict["image"] = scene + variant + "/" + scene + variant + referenceTag + ".png"
                     
-                    if numLayers > 0:
+                    if numLayers > 0 or numErrors > 0:
                         sceneResultsDict["elements"][0]["elements"].append(reference_dict)
                     else:
                         sceneResultsDict["elements"].append(reference_dict)
@@ -104,29 +106,29 @@ class ResultsViewer:
                             img = np.zeros(img.shape)
                             if limg.__contains__(layers[i]):
                                 img = limg[layers[i]]
-                            testCase_layer_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + "-"+ layers[i] + ".png"
+                            testCase_layer_image_png =  sceneVariant_dir + "/" + scene + variant + referenceTag + "-"+ layers[i] + ".png"
                             sio.image.write(testCase_layer_image_png, img)
                             layer_dict = {}
                             layer_dict["title"] = "Reference"
                             layer_dict["version"] = "-"
                             if perScene:
-                                layer_dict["image"] = scene + variant + "_ref" + "-"+ layers[i] + ".png"
+                                layer_dict["image"] = scene + variant + referenceTag + "-"+ layers[i] + ".png"
                             else:
-                                layer_dict["image"] = scene + variant + "/" + scene + variant + "_ref" + "-"+ layers[i] + ".png"
+                                layer_dict["image"] = scene + variant + "/" + scene + variant + referenceTag + "-"+ layers[i] + ".png"
                             sceneResultsDict["elements"][typeId[layers[i]]]["elements"].append(layer_dict)
 
                     if numErrors > 0:
                         for i in range(numErrors):
                             img = np.zeros(img.shape)
-                            testCase_error_image_png =  sceneVariant_dir + "/" + scene + variant + "_ref" + "-"+ errors[i] + ".png"
+                            testCase_error_image_png =  sceneVariant_dir + "/" + scene + variant + referenceTag + "-"+ errors[i] + ".png"
                             sio.image.write(testCase_error_image_png, img)
                             error_dict = {}
                             error_dict["title"] = "Reference"
                             error_dict["version"] = "-"
                             if perScene:
-                                error_dict["image"] = scene + variant + "_ref" + "-"+ errors[i] + ".png"
+                                error_dict["image"] = scene + variant + referenceTag + "-"+ errors[i] + ".png"
                             else:
-                                error_dict["image"] = scene + variant + "/" + scene + variant + "_ref" + "-"+ errors[i] + ".png"
+                                error_dict["image"] = scene + variant + "/" + scene + variant + referenceTag + "-"+ errors[i] + ".png"
                             sceneResultsDict["elements"][typeId[errors[i]]]["elements"].append(error_dict)
 
                 
@@ -134,7 +136,7 @@ class ResultsViewer:
                     
                     if not testCase.skipViewer:
                         result_dict = {}
-                        testCase_result_image_exr =  resultsDir + "/" + scene + variant + "/" + scene + variant + "-" + testCase.name + ".exr"
+                        testCase_result_image_exr =  resultsDir + "/" + scene + variant + "/" + scene + variant + "-" + testCase.name + "-" +str(budget) + budgetType + ".exr"
                         print(testCase_result_image_exr)
                         tcImg = sio.read(testCase_result_image_exr)
                         testCase_result_image_png =  sceneVariant_dir + "/" + scene + variant + "-" + testCase.name + ".png"
@@ -148,7 +150,7 @@ class ResultsViewer:
                         else:
                             result_dict["image"] = scene + variant + "/" + scene + variant + "-" + testCase.name + ".png"
                         
-                        if numLayers > 0:
+                        if numLayers > 0 or numErrors > 0:
                             sceneResultsDict["elements"][0]["elements"].append(result_dict)
                         else:
                             sceneResultsDict["elements"].append(result_dict)
@@ -171,15 +173,24 @@ class ResultsViewer:
                                 sceneResultsDict["elements"][typeId[layers[i]]]["elements"].append(layer_dict)
 
                         if numErrors > 0:
-                            reference_image_exr =  scenesDir + "/" + scene + "/" + scene + variant + "_ref" + ".exr"
+                            reference_image_exr = os.path.join(scenesDir, scene, "reference", scene + variant + referenceTag + ".exr")
                             refImg = sio.read(reference_image_exr)
                             for i in range(numErrors):
                                     [errorValue, errorImg] = errormetrics.calculateError(refImg, tcImg, errors[i], percentile=0.01, epsilon=0.001)
                                     #fgError = figuregen.util.image.relative_mse_outlier_rejection(img=tcImg, ref=refImg, )
                                     fgError = sio.relative_mse_outlier_rejection(img=tcImg, ref=refImg, percentage=0.01, epsilon=0.001)
                                     maxError = np.max(errorImg)
+                                    minError = np.min(errorImg)
+                                    print("maxError = ", maxError, "\t minError = ", minError)
                                     print("errorValue = " , errorValue , "\t fgError = ", fgError)
-                                    errorImg = cv2.applyColorMap(((np.clip(errorImg / (errorValue * 2), 0.0, 1.0))*255).astype(np.uint8), cv2.COLORMAP_AUTUMN).astype(np.float32) / 255.0    
+                                    if errors[i] != "PosNeg":
+                                        errorImg = cv2.applyColorMap(((np.clip(errorImg / (errorValue * 2), 0.0, 1.0))*255).astype(np.uint8), cv2.COLORMAP_AUTUMN).astype(np.float32) / 255.0    
+                                    else:
+                                        errorImg2 = np.zeros((refImg.shape[0],refImg.shape[1],3))
+
+                                        errorImg2[errorImg<0, 0 ] = np.abs(errorImg[errorImg<0])
+                                        errorImg2[errorImg>0, 1 ] = errorImg[errorImg>0]
+                                        errorImg = errorImg2
                                     #errorImg = lin_to_srgb(errorImg)
                                     testCase_error_image_png =  sceneVariant_dir + "/" + scene + variant + "-" + testCase.name + "-"+ errors[i] + ".png"
                                     sio.image.write(testCase_error_image_png, errorImg)

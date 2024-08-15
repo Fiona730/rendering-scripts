@@ -1,7 +1,6 @@
 import os
 import copy
 import fnmatch
-import ipdb
 
 class PBRTRenderer:
     def __init__(self, pbrtInstallDir, resultsDir, buffersDir, scenesDir):
@@ -91,7 +90,7 @@ class PBRTRenderer:
                 if stats:
                     command += " --stats "
                 command += " --nthreads " + str(nthreads)
-                command += f" --{budgetType} {budget}"
+                command += f" --seed 0 --{budgetType} {budget}"
                 command += " --outfile " + str(outFile)
                 command += " 2>&1 | tee " + str(logFile)
                 
@@ -144,7 +143,7 @@ def extractIntegrator(parameters):
 def run(sceneFile, outfile, spp = 64):
     command = "pbrt"
     command += " " + sceneFile
-    command += " --spp " + str(spp)
+    command += " --seed 0 --spp " + str(spp)
     command += " --outfile " + str(outfile)
     command += " > " + outfile.replace(".exr", ".log")
     print(command)

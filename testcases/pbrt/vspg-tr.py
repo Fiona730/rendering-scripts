@@ -11,12 +11,13 @@ common_parameters = {
     "usenee" : ["bool", True],
     "surfaceguiding" : ["bool", False],
     "volumeguiding" : ["bool", False],
-    "rrguiding" : ["bool", False],
-    "surfacerrguiding" : ["bool", False],
-    "volumerrguiding" : ["bool", False],
     "storeGuidingCache" : ["bool", False],
     "loadGuidingCache" : ["bool", False],
     "guidingCacheFileName" : ["string", ""],
+
+    "rrguiding" : ["bool", False],
+    "surfacerrguiding" : ["bool", False],
+    "volumerrguiding" : ["bool", False],
 
     "vspprimaryguiding" : ["bool", False],
     "vspsecondaryguiding" : ["bool", False],

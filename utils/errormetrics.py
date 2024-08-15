@@ -19,6 +19,11 @@ def calculateError(refImg, img, errorType="relMSE", percentile=0.01, epsilon = 0
         errorImg = np.abs(refImg-img)
         errorImg /= (refImg+img+epsilon) / 2
         errorImg = np.average(errorImg, axis=2)
+    elif errorType == "PosNeg":
+        print("PosNeg")
+        errorImg = refImg-img
+        errorImg = np.average(errorImg, axis=2)
+
 
     flatError = errorImg.flatten()
     flatError = np.sort(flatError)
@@ -27,5 +32,5 @@ def calculateError(refImg, img, errorType="relMSE", percentile=0.01, epsilon = 0
 
     if errorType == "RMSE":
         errorValue = np.sqrt(errorValue)
-
+    print ("max: ", np.max(errorImg), "  min: ", np.min(errorImg))
     return [errorValue, errorImg]

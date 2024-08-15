@@ -4,23 +4,20 @@ CURRENTDIR=${PWD}
 # HOSTS=("c01" "c02" "c03" "c04" "c05" "c06" "c07" "c08" "c09")
 # SCENES=("JungleRuins" "country-kitchen" "landscape" "290skydemo" "earth" "oriental-lantern")
 
-# HOSTS=("c02" "c03" "c04" "c05" "c06" "c07")
+# HOSTS=("c01" "c02" "c03" "c04" "c05" "c06" "c07" "c08" "c09")
+# SCENES=("JungleRuins" "country-kitchen" "landscape" "290skydemo" "earth" "oriental-lantern" "pool" "CoronaBenchmark2")
+
+# HOSTS=("c03" "c05" "c06" "c07" "c08" "c09")
 # SCENES=("JungleRuins" "country-kitchen" "landscape" "290skydemo" "earth" "oriental-lantern")
 
-# HOSTS=("c02" "c03" "c04" "c05")
-# SCENES=("oriental-lantern" "museum" "cornell-box-lightshaft" "cornell-box-ball")
+# HOSTS=("c05" "c06" "c07" "c08" "c09")
+# SCENES=("290skydemo" "earth" "oriental-lantern")
 
-# HOSTS=("c01" "c02" "c03")
-# SCENES=("JungleRuins" "country-kitchen" "landscape")
+# HOSTS=("c05")
+# SCENES=("JungleRuins")
 
-# HOSTS=("c01" "c02" "c03")
-# SCENES=("country-kitchen" "landscape" "earth")
-
-# HOSTS=("c01" "c02" "c03")
-# SCENES=("country-kitchen" "landscape" "earth")
-
-HOSTS=("c02")
-SCENES=("earth")
+HOSTS=("c01" "c02" "c05" "c06" "c07" "c08" "c09")
+SCENES=("JungleRuins" "country-kitchen" "landscape" "290skydemo" "earth" "oriental-lantern")
 
 NUM=${#SCENES[@]}
 let NUM=$NUM-1

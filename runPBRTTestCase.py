@@ -1,19 +1,19 @@
 import renderer.pbrt.PBRTRenderer as PBRTRenderer
 import utils.TestCaseHelper as TestCaseHelper
 import utils.SceneHelper as SceneHelper
-# import utils.ResultsViewer as ResultsViewer
+import utils.ResultsViewer as ResultsViewer
 
 import argparse
 
-BUDGET_IS_SPP = True
+BUDGET_IS_SPP = False
 BUDGET_STRING = "equalSPP" if BUDGET_IS_SPP else "equalTime"
-RUN_NAME = "firstRun"
+RUN_NAME = "fullRun-independent"
 TEST_CASE = "vspg-main"
-DIR_NAME = f"0805-{TEST_CASE}-{RUN_NAME}-{BUDGET_STRING}"
+DIR_NAME = f"0813-{TEST_CASE}-{RUN_NAME}-{BUDGET_STRING}"
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--scene', '-t', default='', type=str)
+    parser.add_argument('--scene', default='', type=str)
     parser.add_argument('--render', action='store_true')
     parser.add_argument('--no-render', dest='render', action='store_false')
     parser.set_defaults(render=True)
@@ -36,7 +36,9 @@ if __name__ == '__main__':
     testCases, testCaseDescription = TestCaseHelper.loadTestCases(f"testcases/pbrt/{TEST_CASE}")
 
     # Loading the scenes to run the test cases (e.g., pbrt-scenes can be a folder or a soft link to it)
-    [scenes, scenesDir] = SceneHelper.loadScenes("scenes/pbrt/scenesconfig-equalspp") 
+    [scenes, scenesDir] = SceneHelper.loadScenes("scenes/pbrt/scenesconfig-equaltime") 
+    # /home/kehan/Develop/openpgl-pbrt-v4-scenes-seb/scenesconfig-kh-test
+    # scenes/pbrt/scenesconfig-equalspp
 
     if args.render:
         # Setup the PBRT renderer
@@ -58,7 +60,7 @@ if __name__ == '__main__':
                 for testCase in testCases:
                     pbrt.runTestCase(scene, sceneInfo, testCase, budgetIsSPP=BUDGET_IS_SPP, stats=True)
 
-    # if args.viewer and args.scene == "":
-    #     #after running all test cases for all scenes prepare the results in an interactive HTML viewer 
-    #     viewer = ResultsViewer.ResultsViewer("./utils/webviewer")
-    #     viewer.generateHTMLS(viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, showReference=False, perScene=False)
+    if args.viewer and args.scene == "":
+        #after running all test cases for all scenes prepare the results in an interactive HTML viewer 
+        viewer = ResultsViewer.ResultsViewer("./utils/webviewer")
+        viewer.generateHTMLS(viewerOutputDir, resultsDir, scenesDir, scenes, testCaseDescription, testCases, budgetIsSPP=BUDGET_IS_SPP, showReference=True, perScene=False, errors=["PosNeg","relMSE"])

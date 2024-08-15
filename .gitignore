@@ -10,6 +10,9 @@ mitsuba-buffers
 pbrt-buffers
 blender-buffers
 
+pbrt-results*
+pbrt-viewers*
+
 # mitsuba-scenes
 # pbrt-scenes
 # blender-scenes
